@@ -3,15 +3,7 @@ package com.lelefans.mwy.game.kdou;
 import lombok.Data;
 
 @Data
-public class Bomb {
-    /**
-     * 子弹x坐标
-     */
-    private int x;
-    /**
-     * 子弹y坐标
-     */
-    private int y;
+public class Bomb extends Point{
     /**
      * 游戏方向
      */
@@ -20,4 +12,8 @@ public class Bomb {
      * 子弹速度
      */
     private int speed;
+    /**
+     * 发射子弹的玩家id
+     */
+    private int gamerId;
 }

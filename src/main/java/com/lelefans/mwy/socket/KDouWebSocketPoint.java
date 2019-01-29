@@ -7,10 +7,15 @@ import com.lelefans.mwy.exceptions.GameException;
 import com.lelefans.mwy.game.kdou.Gamer;
 import com.lelefans.mwy.game.kdou.MessageDispatcher;
 import com.lelefans.mwy.game.kdou.RoomContainer;
+import com.lelefans.mwy.model.UserModel;
 import com.lelefans.mwy.model.kdou.WebSocketRequestMessageModel;
 import com.lelefans.mwy.model.kdou.WebSocketResponseMessageModel;
+import com.lelefans.mwy.service.game.kdou.LoginService;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.yeauty.annotation.*;
 import org.yeauty.pojo.ParameterMap;
@@ -21,19 +26,37 @@ import java.io.IOException;
 @ServerEndpoint(prefix = "netty-websocket")
 @Component
 @Slf4j
-public class KDouWebSocketPoint extends Gamer {
+public class KDouWebSocketPoint extends Gamer implements ApplicationContextAware {
+    private static ApplicationContext applicationContext = null;
+
+    private LoginService loginService;
+    private MessageDispatcher messageDispatcher;
+    public KDouWebSocketPoint(){
+        if(applicationContext == null){
+            return;
+        }
+        this.loginService = applicationContext.getBean(LoginService.class);
+        this.messageDispatcher = applicationContext.getBean(MessageDispatcher.class);
+    }
+
 
     @OnOpen
-    public void onOpen(Session session, HttpHeaders headers, ParameterMap parameterMap) {
+    public void onOpen(Session session, HttpHeaders headers, ParameterMap parameterMap) throws IOException {
         System.out.println("connect");
         this.setSession(session);
-
-        // TODO: 2019-01-27  玩家信息补充
+        String token = parameterMap.getParameter("token");
+        UserModel login = loginService.login(token);
+        if(login == null){
+            writeTextMessage(WebSocketResponseMessageModel.builder().messageType(ResponseMessageTypeEnum.LOGIN).data(false).build());
+            session.close();
+        }
+        this.setGamerId(login.getId());
+        this.setNickName(login.getName());
     }
 
     @OnClose
     public void onClose(Session session) {
-        RoomContainer.getInstance().removeFormQueue(this.getGameRoom());
+        RoomContainer.getInstance().removeFromQueue(this.getGameRoom());
     }
 
     @OnMessage
@@ -41,19 +64,21 @@ public class KDouWebSocketPoint extends Gamer {
         WebSocketRequestMessageModel requestMessageModel = null;
         try {
             requestMessageModel = JSON.parseObject(message, WebSocketRequestMessageModel.class);
+            requestMessageModel.setGamer(this);
         } catch (Exception e) {
-            throw new GameException(ExceptionEnum.Msg_Form_Error.getCode(),e);
+            throw new GameException(ExceptionEnum.Msg_Form_Error,e);
         }
-        MessageDispatcher.getInstance().dispatchMessage(requestMessageModel);
+        messageDispatcher.dispatchMessage(requestMessageModel);
     }
 
     @OnError
     public void onError(Session session, Throwable error) {
-        RoomContainer.getInstance().removeFormQueue(this.getGameRoom());
+        RoomContainer.getInstance().removeFromQueue(this.getGameRoom());
         log.error("websocket 错误,name:{},id:{}", this.getNickName(), this.getGamerId(), error);
     }
 
-    public void writeMessage(WebSocketResponseMessageModel responseModel) throws IOException {
-        this.getSession().sendText(JSON.toJSONString(responseModel));
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

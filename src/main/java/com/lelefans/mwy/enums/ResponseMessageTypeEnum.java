@@ -7,14 +7,17 @@ import lombok.Getter;
  */
 @Getter
 public enum ResponseMessageTypeEnum implements CodeEnum {
-    Room_Status(1,"房间状态消息"),
-    Game_Config(2,"有戏配置消息")
+    Room_Status(1, "房间状态消息"),
+    Game_Config(2, "有戏配置消息"),
+    LOGIN(3, "登陆消息"),
+    ENTER_ROOM(4,"进入房间"),
+    CREATE_ROOM(5,"创建房间成功"),
     ;
 
     int code;
     String desc;
 
-    ResponseMessageTypeEnum(int code, String desc){
+    ResponseMessageTypeEnum(int code, String desc) {
         this.code = code;
         this.desc = desc;
     }

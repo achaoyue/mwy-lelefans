@@ -3,15 +3,8 @@ package com.lelefans.mwy.game.kdou;
 import lombok.Data;
 
 @Data
-public class Gift {
-    /**
-     * 坐标x
-     */
-    private int x;
-    /**
-     * 坐标y
-     */
-    private int y;
+public class Gift extends Point{
+
     /**
      * 礼物成熟时间
      */

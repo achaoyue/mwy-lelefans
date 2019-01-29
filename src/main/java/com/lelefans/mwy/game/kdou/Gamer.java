@@ -1,7 +1,7 @@
 package com.lelefans.mwy.game.kdou;
 
-import com.lelefans.mwy.enums.ExceptionEnum;
-import com.lelefans.mwy.exceptions.GameException;
+import com.alibaba.fastjson.JSON;
+import com.lelefans.mwy.model.kdou.WebSocketResponseMessageModel;
 import lombok.Data;
 import org.yeauty.pojo.Session;
 
@@ -9,24 +9,16 @@ import org.yeauty.pojo.Session;
  * 游戏玩家
  */
 @Data
-public class Gamer {
+public class Gamer extends Point{
     Session session;
     /**
      * 玩家id
      */
-    private long gamerId;
+    private int gamerId;
     /**
      * 玩家昵称
      */
     private String nickName;
-    /**
-     * 游戏玩家坐标x
-     */
-    private int x;
-    /**
-     * 游戏玩家坐标y
-     */
-    private int y;
     /**
      * 游戏房间
      */
@@ -38,19 +30,17 @@ public class Gamer {
     /**
      * 玩家方向
      */
-    private Integer dirAngle;
+    private int dirAngle;
     /**
      * 玩家速度
      */
     private int speed;
+    /**
+     * 上次发射时间
+     */
+    private long lastFireTime;
 
-    ////--------------方法区---------------
-    public void enterRoom(Integer roomId){
-        GameRoom room = RoomContainer.getInstance().getRoom(roomId);
-        if(room == null){
-            throw new GameException(ExceptionEnum.NO_ROOM.getCode(),"房间不存在");
-        }
-        this.gameRoom = room;
+    public void writeTextMessage(WebSocketResponseMessageModel responseModel) {
+        this.getSession().sendText(JSON.toJSONString(responseModel));
     }
-
 }

@@ -3,32 +3,22 @@ package com.lelefans.mwy.exceptions;
 import com.lelefans.mwy.enums.ExceptionEnum;
 
 public class GameException extends RuntimeException {
-    private int code;
+    private ExceptionEnum exceptionEnum;
 
-    public GameException(String msg,Throwable e){
-        super(msg,e);
+    public GameException(ExceptionEnum exceptionEnum){
+        super(exceptionEnum.getDesc());
+        this.exceptionEnum = exceptionEnum;
     }
-    public GameException(){
-        super();
+    public GameException(ExceptionEnum exceptionEnum,Throwable e){
+        super(exceptionEnum.getDesc(),e);
+        this.exceptionEnum = exceptionEnum;
     }
-    public GameException(int code,Throwable e){
-        super(e);
-        this.code = code;
+    public GameException(ExceptionEnum exceptionEnum,String msg,Throwable e){
+        super(exceptionEnum.getDesc()+","+msg);
+        this.exceptionEnum = exceptionEnum;
     }
-    public GameException(int code){
-        super();
-        this.code = code;
-    }
-    public GameException(int code,String msg,Throwable e){
-        super(msg,e);
-        this.code = code;
-    }
-    public GameException(int code,String msg){
-        super(msg);
-        this.code = code;
-    }
-    public GameException(ExceptionEnum exception){
-        super(exception.getDesc());
-        this.code = exception.getCode();
+    public GameException(ExceptionEnum exceptionEnum,String msg){
+        super(exceptionEnum.getDesc()+","+msg);
+        this.exceptionEnum = exceptionEnum;
     }
 }
