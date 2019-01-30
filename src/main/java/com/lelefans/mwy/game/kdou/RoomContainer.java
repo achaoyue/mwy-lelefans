@@ -97,6 +97,9 @@ public class RoomContainer {
             return;
         }
         this.removeRoom(room.getId());
+        if(!CollectionUtils.isEmpty(room.getGamers())){
+            room.getGamers().forEach(e->e.setGameRoom(null));
+        }
         this.gameQueue.remove(room);
     }
 

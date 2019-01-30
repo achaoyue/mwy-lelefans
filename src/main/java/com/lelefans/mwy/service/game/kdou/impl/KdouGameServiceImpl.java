@@ -99,7 +99,7 @@ public class KdouGameServiceImpl implements KdouGameService {
     private GameRoom buildRoom(List<Gamer> gamerList) {
         GameRoom gameRoom = new GameRoom();
         gameRoom.setGamers(gamerList);
-        gameRoom.setId((int) Math.random() * 1000000);
+        gameRoom.setId((int) (Math.random() * 1000000));
         gameRoom.setCreateTime(System.currentTimeMillis());
         gameRoom.setStatus(GameRoomStatus.Gaming);
         for (Gamer gamer : gamerList) {

@@ -30,11 +30,11 @@ public class Gamer extends Point{
     /**
      * 玩家方向
      */
-    private int dirAngle;
+    private double dirAngle;
     /**
      * 玩家速度
      */
-    private int speed;
+    private double speed;
     /**
      * 上次发射时间
      */

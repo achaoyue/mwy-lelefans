@@ -13,9 +13,9 @@ public class MoveChangeEvent {
     /**
      * 移动的角度
      */
-    private Integer dirAngel;
+    private double dirAngel;
     /**
      * 移动的速度
      */
-    private int speed;
+    private double speed;
 }

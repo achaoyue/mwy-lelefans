@@ -7,11 +7,11 @@ public class Bomb extends Point{
     /**
      * 游戏方向
      */
-    private int dirAngle;
+    private double dirAngle;
     /**
      * 子弹速度
      */
-    private int speed;
+    private double speed;
     /**
      * 发射子弹的玩家id
      */

@@ -8,6 +8,7 @@ import com.lelefans.mwy.util.DateUtil;
 import com.lelefans.mwy.util.LoginUtil;
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -28,6 +29,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
+    @Transactional
     public UserModel login(String loginId, String pwd) {
         if (CommonUser.equals(loginId)) {
             UserEntity userEntity = new UserEntity();
