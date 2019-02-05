@@ -41,6 +41,9 @@ public class Gamer extends Point{
     private long lastFireTime;
 
     public void writeTextMessage(WebSocketResponseMessageModel responseModel) {
+        if(this.getSession() == null || !this.getSession().isOpen()){
+            return;
+        }
         this.getSession().sendText(JSON.toJSONString(responseModel));
     }
 }

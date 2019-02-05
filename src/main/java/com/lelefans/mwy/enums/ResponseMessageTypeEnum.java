@@ -12,6 +12,7 @@ public enum ResponseMessageTypeEnum implements CodeEnum {
     LOGIN(3, "登陆消息"),
     ENTER_ROOM(4,"进入房间"),
     CREATE_ROOM(5,"创建房间成功"),
+    START_GAME(6,"开始游戏")
     ;
 
     int code;

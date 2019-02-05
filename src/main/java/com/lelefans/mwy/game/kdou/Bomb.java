@@ -1,8 +1,12 @@
 package com.lelefans.mwy.game.kdou;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 public class Bomb extends Point{
     /**
      * 游戏方向
@@ -16,4 +20,9 @@ public class Bomb extends Point{
      * 发射子弹的玩家id
      */
     private int gamerId;
+
+    /**
+     * 是否需要移除
+     */
+    private boolean needRemove = false;
 }

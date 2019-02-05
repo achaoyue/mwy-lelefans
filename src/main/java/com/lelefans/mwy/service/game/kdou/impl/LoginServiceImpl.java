@@ -35,8 +35,9 @@ public class LoginServiceImpl implements LoginService {
             UserEntity userEntity = new UserEntity();
             userEntity.setName("游客");
             userEntity.setPwd(DEFAULT_PWD);
+            userEntity.setCreateTime(new Date());
             userDao.insertUser(userEntity);
-            userEntity.setLoginId(userEntity.getId() + "_" + ((int) Math.random() * 1000));
+            userEntity.setLoginId(userEntity.getId() + "_" + ((int) (Math.random() * 1000)));
             userDao.updateUser(userEntity);
             return toUserModel(userEntity);
         } else {

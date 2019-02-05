@@ -2,8 +2,10 @@ package com.lelefans.mwy.service.game.kdou.impl;
 
 import com.lelefans.mwy.enums.ExceptionEnum;
 import com.lelefans.mwy.enums.GameRoomStatus;
+import com.lelefans.mwy.enums.ResponseMessageTypeEnum;
 import com.lelefans.mwy.exceptions.GameException;
 import com.lelefans.mwy.game.kdou.*;
+import com.lelefans.mwy.model.kdou.WebSocketResponseMessageModel;
 import com.lelefans.mwy.model.kdou.request.event.*;
 import com.lelefans.mwy.service.game.kdou.KdouGameService;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class KdouGameServiceImpl implements KdouGameService {
@@ -46,7 +49,11 @@ public class KdouGameServiceImpl implements KdouGameService {
         } else {
             GameRoom gameRoom = buildRoom(Arrays.asList(gamer, matchEvent.getGamer()));
             roomContainer.putRoom(gameRoom);
-            // TODO: 2019-01-29 房间组件成功消息
+
+            WebSocketResponseMessageModel messageModel = new WebSocketResponseMessageModel();
+            messageModel.setMessageType(ResponseMessageTypeEnum.START_GAME);
+            messageModel.setData(gameRoom.getGamers().stream().map(e->e.getGamerId()).collect(Collectors.toList()));
+            gameRoom.dispatchMsg(messageModel);
         }
     }
 
@@ -60,7 +67,11 @@ public class KdouGameServiceImpl implements KdouGameService {
         systemMachine.AddGamer(sysGamer);
         GameRoom gameRoom = buildRoom(Arrays.asList(gamer, sysGamer));
         RoomContainer.getInstance().putRoom(gameRoom);
-        // TODO: 2019-01-29 房间组件成功消息
+
+        WebSocketResponseMessageModel messageModel = new WebSocketResponseMessageModel();
+        messageModel.setMessageType(ResponseMessageTypeEnum.START_GAME);
+        messageModel.setData(gameRoom.getGamers().stream().map(e->e.getGamerId()).collect(Collectors.toList()));
+        gameRoom.dispatchMsg(messageModel);
     }
 
     @Override
@@ -71,7 +82,9 @@ public class KdouGameServiceImpl implements KdouGameService {
     @Override
     public void changeMoveStatus(MoveChangeEvent moveChangeEvent) {
         Gamer gamer = moveChangeEvent.getGamer();
-        gamer.setDirAngle(moveChangeEvent.getDirAngel());
+        if(moveChangeEvent.getSpeed() != 0){
+            gamer.setDirAngle(moveChangeEvent.getDirAngel());
+        }
         gamer.setSpeed(moveChangeEvent.getSpeed());
     }
 
@@ -104,6 +117,8 @@ public class KdouGameServiceImpl implements KdouGameService {
         gameRoom.setStatus(GameRoomStatus.Gaming);
         for (Gamer gamer : gamerList) {
             gamer.setGameRoom(gameRoom);
+            gamer.setX(Math.random()* GameConfig.getInstance().getWidth());
+            gamer.setY(Math.random()* GameConfig.getInstance().getHeight());
         }
         return gameRoom;
     }

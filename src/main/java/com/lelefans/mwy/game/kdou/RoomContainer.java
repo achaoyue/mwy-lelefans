@@ -90,17 +90,17 @@ public class RoomContainer {
     }
 
     /**
-     * @param room
+     * @param gamer
      */
-    public void removeFromQueue(GameRoom room) {
-        if (room == null) {
+    public void removeFromQueue(Gamer gamer) {
+        if (gamer == null) {
             return;
         }
-        this.removeRoom(room.getId());
-        if(!CollectionUtils.isEmpty(room.getGamers())){
-            room.getGamers().forEach(e->e.setGameRoom(null));
+        GameRoom gameRoom = gamer.getGameRoom();
+        if (gameRoom != null) {
+            gameRoom.destory();
         }
-        this.gameQueue.remove(room);
+        this.gameQueue.remove(gamer);
     }
 
     /**
@@ -113,7 +113,9 @@ public class RoomContainer {
                 .forEach(e -> e.flush());
         List<Integer> expiredRoomIds = roomMap.entrySet().stream().filter(Objects::nonNull)
                 .filter(e -> {
-                    return e == null || e.getValue() == null || e.getValue().getStatus() == GameRoomStatus.Game_Over;
+                    return e == null || e.getValue() == null
+                            || e.getValue().getStatus() == GameRoomStatus.Game_Over
+                            || CollectionUtils.isEmpty(e.getValue().getGamers());
                 })
                 .map(e -> e.getKey()).collect(Collectors.toList());
         expiredRoomIds.forEach(e -> roomMap.remove(e));

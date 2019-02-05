@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class SimpleGamer extends Point {
     private int id;
+    private int score;
 }

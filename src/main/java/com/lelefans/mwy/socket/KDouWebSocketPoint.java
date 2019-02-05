@@ -26,10 +26,11 @@ import java.io.IOException;
 @ServerEndpoint(prefix = "netty-websocket")
 @Component
 @Slf4j
-public class KDouWebSocketPoint extends Gamer implements ApplicationContextAware {
+public class KDouWebSocketPoint implements ApplicationContextAware {
     private static ApplicationContext applicationContext = null;
 
     private LoginService loginService;
+    private Gamer gamer;
     private MessageDispatcher messageDispatcher;
     public KDouWebSocketPoint(){
         if(applicationContext == null){
@@ -43,20 +44,25 @@ public class KDouWebSocketPoint extends Gamer implements ApplicationContextAware
     @OnOpen
     public void onOpen(Session session, HttpHeaders headers, ParameterMap parameterMap) throws IOException {
         System.out.println("connect");
-        this.setSession(session);
+        this.gamer = new Gamer();
+        this.gamer.setSession(session);
         String token = parameterMap.getParameter("token");
         UserModel login = loginService.login(token);
         if(login == null){
-            writeTextMessage(WebSocketResponseMessageModel.builder().messageType(ResponseMessageTypeEnum.LOGIN).data(false).build());
+            this.gamer.writeTextMessage(WebSocketResponseMessageModel.builder().messageType(ResponseMessageTypeEnum.LOGIN).data(false).build());
             session.close();
         }
-        this.setGamerId(login.getId());
-        this.setNickName(login.getName());
+        this.gamer.setGamerId(login.getId());
+        this.gamer.setNickName(login.getName());
+        WebSocketResponseMessageModel messageModel = new WebSocketResponseMessageModel();
+        messageModel.setMessageType(ResponseMessageTypeEnum.LOGIN);
+        messageModel.setData(true);
+        this.gamer.writeTextMessage(messageModel);
     }
 
     @OnClose
     public void onClose(Session session) {
-        RoomContainer.getInstance().removeFromQueue(this.getGameRoom());
+        RoomContainer.getInstance().removeFromQueue(this.gamer);
     }
 
     @OnMessage
@@ -64,7 +70,7 @@ public class KDouWebSocketPoint extends Gamer implements ApplicationContextAware
         WebSocketRequestMessageModel requestMessageModel = null;
         try {
             requestMessageModel = JSON.parseObject(message, WebSocketRequestMessageModel.class);
-            requestMessageModel.setGamer(this);
+            requestMessageModel.setGamer(this.gamer);
         } catch (Exception e) {
             throw new GameException(ExceptionEnum.Msg_Form_Error,e);
         }
@@ -73,8 +79,8 @@ public class KDouWebSocketPoint extends Gamer implements ApplicationContextAware
 
     @OnError
     public void onError(Session session, Throwable error) {
-        RoomContainer.getInstance().removeFromQueue(this.getGameRoom());
-        log.error("websocket 错误,name:{},id:{}", this.getNickName(), this.getGamerId(), error);
+        RoomContainer.getInstance().removeFromQueue(this.gamer);
+        log.error("websocket 错误,name:{},id:{}", this.gamer.getNickName(), this.gamer.getGamerId(), error);
     }
 
     @Override
