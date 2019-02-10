@@ -4,13 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.lelefans.mwy.enums.ExceptionEnum;
 import com.lelefans.mwy.enums.ResponseMessageTypeEnum;
 import com.lelefans.mwy.exceptions.GameException;
+import com.lelefans.mwy.game.kdou.GameRoom;
 import com.lelefans.mwy.game.kdou.Gamer;
 import com.lelefans.mwy.game.kdou.MessageDispatcher;
 import com.lelefans.mwy.game.kdou.RoomContainer;
 import com.lelefans.mwy.model.UserModel;
 import com.lelefans.mwy.model.kdou.WebSocketRequestMessageModel;
 import com.lelefans.mwy.model.kdou.WebSocketResponseMessageModel;
+import com.lelefans.mwy.service.game.kdou.KdouGameService;
 import com.lelefans.mwy.service.game.kdou.LoginService;
+import com.lelefans.mwy.service.game.kdou.impl.KdouGameServiceImpl;
 import io.netty.handler.codec.http.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -22,6 +25,8 @@ import org.yeauty.pojo.ParameterMap;
 import org.yeauty.pojo.Session;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Optional;
 
 @ServerEndpoint(prefix = "netty-websocket")
 @Component
@@ -32,12 +37,14 @@ public class KDouWebSocketPoint implements ApplicationContextAware {
     private LoginService loginService;
     private Gamer gamer;
     private MessageDispatcher messageDispatcher;
+    private KdouGameService gameService;
     public KDouWebSocketPoint(){
         if(applicationContext == null){
             return;
         }
         this.loginService = applicationContext.getBean(LoginService.class);
         this.messageDispatcher = applicationContext.getBean(MessageDispatcher.class);
+        this.gameService =  applicationContext.getBean(KdouGameService.class);
     }
 
 
@@ -62,6 +69,7 @@ public class KDouWebSocketPoint implements ApplicationContextAware {
 
     @OnClose
     public void onClose(Session session) {
+        sendLeaveMsg();
         RoomContainer.getInstance().removeFromQueue(this.gamer);
     }
 
@@ -79,6 +87,7 @@ public class KDouWebSocketPoint implements ApplicationContextAware {
 
     @OnError
     public void onError(Session session, Throwable error) {
+        sendLeaveMsg();
         RoomContainer.getInstance().removeFromQueue(this.gamer);
         log.error("websocket 错误,name:{},id:{}", this.gamer.getNickName(), this.gamer.getGamerId(), error);
     }
@@ -86,5 +95,16 @@ public class KDouWebSocketPoint implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    private void sendLeaveMsg(){
+        GameRoom gameRoom = gamer.getGameRoom();
+        if(gameRoom == null){
+            return;
+        }
+        WebSocketResponseMessageModel responseMessageModel = new WebSocketResponseMessageModel();
+        responseMessageModel.setMessageType(ResponseMessageTypeEnum.GAME_OVER);
+        responseMessageModel.setData("close");
+        Optional.ofNullable(gameRoom.getGamers()).orElse(Collections.emptyList()).forEach(e->e.writeTextMessage(responseMessageModel));
     }
 }

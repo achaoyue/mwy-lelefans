@@ -1,16 +1,12 @@
 package com.lelefans.mwy.game.kdou;
 
 import com.lelefans.mwy.enums.GameRoomStatus;
-import com.lelefans.mwy.enums.ResponseMessageTypeEnum;
-import com.lelefans.mwy.model.kdou.WebSocketResponseMessageModel;
-import com.lelefans.mwy.model.kdou.response.event.GameStartEvent;
-import com.lelefans.mwy.model.kdou.response.event.SimpleGamer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -18,6 +14,7 @@ import java.util.stream.Collectors;
 /**
  * 游戏房间容器，包括所有的房间和待匹配的房间
  */
+@Slf4j
 public class RoomContainer {
     private static RoomContainer roomContainer = new RoomContainer();
     /**
@@ -98,7 +95,7 @@ public class RoomContainer {
         }
         GameRoom gameRoom = gamer.getGameRoom();
         if (gameRoom != null) {
-            gameRoom.destory();
+            gameRoom.destroy();
         }
         this.gameQueue.remove(gamer);
     }
@@ -110,7 +107,13 @@ public class RoomContainer {
         roomMap.values().stream()
                 .filter(Objects::nonNull)
                 .filter(e -> e.getStatus() == GameRoomStatus.Gaming)
-                .forEach(e -> e.flush());
+                .forEach(e -> {
+                    try {
+                        e.flush();
+                    } catch (Exception exception) {
+                        log.error("房间刷新错误", exception);
+                    }
+                });
         List<Integer> expiredRoomIds = roomMap.entrySet().stream().filter(Objects::nonNull)
                 .filter(e -> {
                     return e == null || e.getValue() == null

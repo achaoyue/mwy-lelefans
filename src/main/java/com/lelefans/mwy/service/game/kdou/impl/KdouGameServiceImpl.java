@@ -117,6 +117,7 @@ public class KdouGameServiceImpl implements KdouGameService {
         gameRoom.setStatus(GameRoomStatus.Gaming);
         for (Gamer gamer : gamerList) {
             gamer.setGameRoom(gameRoom);
+            gamer.setScore(300);
             gamer.setX(Math.random()* GameConfig.getInstance().getWidth());
             gamer.setY(Math.random()* GameConfig.getInstance().getHeight());
         }
