@@ -118,9 +118,20 @@ public class KdouGameServiceImpl implements KdouGameService {
         for (Gamer gamer : gamerList) {
             gamer.setGameRoom(gameRoom);
             gamer.setScore(300);
-            gamer.setX(Math.random()* GameConfig.getInstance().getWidth());
-            gamer.setY(Math.random()* GameConfig.getInstance().getHeight());
+            Point p = getAvailablePoint();
+            while (!gameRoom.testAvailable((int)p.getX(),(int)p.getY())){
+                p = getAvailablePoint();
+            }
+            gamer.setX(p.getX());
+            gamer.setY(p.getY());
         }
         return gameRoom;
+    }
+
+    private Point getAvailablePoint(){
+        Point p = new Point();
+        p.setX(Math.random()* GameConfig.getInstance().getWidth());
+        p.setY(Math.random()* GameConfig.getInstance().getHeight());
+        return p;
     }
 }

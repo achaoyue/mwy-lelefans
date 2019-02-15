@@ -21,11 +21,13 @@ public class GameRoom {
     private List<Gamer> gamers;
     private List<Bomb> bombs = new ArrayList<>();
     private List<Gift> gifts = new ArrayList<>();
+    private long lastGift = 0;
 
     public void flush() {
-        if(isGameOver()){
+        GameConfig gameConfig = GameConfig.getInstance();
+        if (isGameOver()) {
             status = GameRoomStatus.Game_Over;
-           return;
+            return;
         }
         WebSocketResponseMessageModel responseMessageModel = new WebSocketResponseMessageModel();
         responseMessageModel.setMessageType(ResponseMessageTypeEnum.Room_Status);
@@ -39,8 +41,23 @@ public class GameRoom {
             List<SimpleGamer> gamers = getGamers().stream().map(e -> getSimpleGamer(e)).collect(Collectors.toList());
             event.setGamers(gamers);
         }
+        event.setGift(gifts.stream().filter(e->e.isRemove()).findAny().orElse(null));
+
+        if (lastGift + 3000 < System.currentTimeMillis() && gifts.isEmpty()) {
+            Gift gift = new Gift();
+            long time = System.currentTimeMillis() + 10000;
+            gift.setTime(time);
+            gift.setMoney(100);
+            gift.setX(Math.random()*gameConfig.getWidth());
+            gift.setY(Math.random()*gameConfig.getHeight());
+            lastGift = time;
+            event.setGift(gift);
+            this.gifts.add(gift);
+        }
+
         responseMessageModel.setData(event);
         bombs.removeAll(bombs.stream().filter(e -> e.isNeedRemove()).collect(Collectors.toList()));
+        gifts.removeAll(gifts.stream().filter(e->e.isRemove()).collect(Collectors.toList()));
 
         testHint();
 
@@ -66,6 +83,7 @@ public class GameRoom {
                         double y = gift.getY() - e.getY();
                         if (x * x + y * y < 60 * 60 && gift.getTime() < System.currentTimeMillis()) {
                             e.setScore(e.getScore() + gift.getMoney());
+                            gift.setRemove(true);
                         }
                     }
                 });
@@ -103,7 +121,7 @@ public class GameRoom {
                 || e.getY() > gameConfig.getHeight()
                 || e.isNeedRemove() == true
                 || !testAvailable((int) p.getX(), (int) p.getY())));
-        p.setRemove(e.isNeedRemove()==true?true:null);
+        p.setRemove(e.isNeedRemove() == true ? true : null);
         return p;
     }
 
@@ -121,29 +139,45 @@ public class GameRoom {
         Optional.ofNullable(gamers).orElse(Collections.emptyList()).stream().forEach(e -> e.writeTextMessage(responseMessageModel));
     }
 
+    /**
+     * 当前点是否是可移动区域
+     * @param x
+     * @param y
+     * @return true是可以移动的
+     */
     public boolean testAvailable(int x, int y) {
         GameConfig gameConfig = GameConfig.getInstance();
         int data = (gameConfig.getWidth() / 10) * (y / 10) + x / 10;
         int w = data / 32;
         int h = data % 32;
-        if(data<0 || data/32>gameConfig.getMap().length){
+        if (data < 0 || data / 32 > gameConfig.getMap().length) {
             return false;
         }
         return (gameConfig.getMap()[w] >>> (31 - h) & 1) == 0;
     }
-    public boolean isGameOver(){
+
+    public boolean isGameOver() {
         if (!CollectionUtils.isEmpty(gamers)) {
             for (Gamer gamer : this.gamers) {
-                if (gamer.getScore() <= 0 ){
-                    WebSocketResponseMessageModel responseMessageModel = new WebSocketResponseMessageModel();
-                    responseMessageModel.setMessageType(ResponseMessageTypeEnum.GAME_OVER);
-                    responseMessageModel.setData(gamer.getGamerId());
-                    dispatchMsg(responseMessageModel);
+                if (gamer.getScore() <= 0) {
+                    gameOverMsg(gamer);
                     return true;
                 }
+            }
+            if(System.currentTimeMillis() - createTime > 1000*60*3){
+                Gamer gamer = gamers.stream().min((e1, e2) -> e2.getScore() - e1.getScore()).orElse(new Gamer());
+                gameOverMsg(gamer);
+                return true;
             }
             return false;
         }
         return true;
+    }
+
+    private void gameOverMsg(Gamer gamer) {
+        WebSocketResponseMessageModel responseMessageModel = new WebSocketResponseMessageModel();
+        responseMessageModel.setMessageType(ResponseMessageTypeEnum.GAME_OVER);
+        responseMessageModel.setData(gamer.getGamerId());
+        dispatchMsg(responseMessageModel);
     }
 }

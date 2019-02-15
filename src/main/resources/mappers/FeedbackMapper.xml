@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.lelefans.mwy.dao.FeedbackDao">
+    <sql id="table_name">
+      feedback
+    </sql>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into
+        <include refid="table_name"/>
+        (phone,content,user_id)
+        values
+        (#{phone},#{content},#{userId})
+    </insert>
+    <select id="getList" resultType="com.lelefans.mwy.dao.Entity.FeedbackEntity">
+        select  * from
+        <include refid="table_name"/>
+        limit #{offset},#{limit}
+    </select>
+</mapper>

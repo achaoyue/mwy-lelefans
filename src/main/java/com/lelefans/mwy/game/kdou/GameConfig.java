@@ -25,7 +25,7 @@ public class GameConfig {
     /**
      * 子弹发射时间间隔，1000表示每秒只能发射一个子弹
      */
-    private int fireInterval = 500;
+    private int fireInterval = 1500;
     /**
      * 游戏界面宽高
      */
@@ -35,6 +35,8 @@ public class GameConfig {
      * 击中一次减去分数
      */
     private int hintDesc = 50;
+
+    private int giftTime = 3000;
 
     private int[] map = new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16769031,-8388608,16769031,-16646208,

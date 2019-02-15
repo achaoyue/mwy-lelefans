@@ -13,4 +13,8 @@ public class Gift extends Point{
      * 礼物得分
      */
     private int money;
+    /**
+     * 无效
+     */
+    private boolean remove = false;
 }
