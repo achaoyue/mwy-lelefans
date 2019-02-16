@@ -150,7 +150,7 @@ public class GameRoom {
         int data = (gameConfig.getWidth() / 10) * (y / 10) + x / 10;
         int w = data / 32;
         int h = data % 32;
-        if (data < 0 || data / 32 > gameConfig.getMap().length) {
+        if (data < 0 || data / 32 >= gameConfig.getMap().length) {
             return false;
         }
         return (gameConfig.getMap()[w] >>> (31 - h) & 1) == 0;
@@ -165,7 +165,7 @@ public class GameRoom {
                 }
             }
             if(System.currentTimeMillis() - createTime > 1000*60*3){
-                Gamer gamer = gamers.stream().min((e1, e2) -> e2.getScore() - e1.getScore()).orElse(new Gamer());
+                Gamer gamer = gamers.stream().min(Comparator.comparingInt(Gamer::getScore)).orElse(new Gamer());
                 gameOverMsg(gamer);
                 return true;
             }
